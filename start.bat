@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title Web Services Generator - Launcher
 chcp 65001 >nul
 
@@ -112,6 +112,6 @@ echo  ------------------------------------------
 echo    執行 stop.bat 可停止所有服務
 echo  ==========================================
 echo.
-echo  可以關閉此視窗，服務仍會在背景繼續執行。
+echo  This window will close in 5 seconds...
 echo.
-pause
+timeout /t 5 /nobreak >nul
