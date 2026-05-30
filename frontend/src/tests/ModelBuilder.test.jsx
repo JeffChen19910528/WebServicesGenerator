@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import React from 'react'
 import ModelBuilder from '../components/ModelBuilder'
+import { LanguageProvider } from '../i18n/LanguageContext.jsx'
+import { renderWithLang } from './testUtils'
 
 const baseService = {
   service_name: 'TestService',
@@ -12,18 +15,20 @@ const baseService = {
   models: []
 }
 
-/**
- * Wires up a real state simulation so functional setService updaters are
- * applied and the component re-renders with updated props automatically.
- */
 function renderWithState(initialService) {
   let currentService = { ...initialService, models: [...initialService.models] }
   const setService = vi.fn(updater => {
     currentService = typeof updater === 'function' ? updater(currentService) : updater
-    rerender(<ModelBuilder service={currentService} setService={setService} />)
+    rerender(
+      <LanguageProvider>
+        <ModelBuilder service={currentService} setService={setService} />
+      </LanguageProvider>
+    )
   })
   const { rerender } = render(
-    <ModelBuilder service={currentService} setService={setService} />
+    <LanguageProvider>
+      <ModelBuilder service={currentService} setService={setService} />
+    </LanguageProvider>
   )
   return { setService, getService: () => currentService }
 }
@@ -31,17 +36,17 @@ function renderWithState(initialService) {
 describe('ModelBuilder', () => {
   describe('empty state', () => {
     it('renders the Add Model button', () => {
-      render(<ModelBuilder service={baseService} setService={vi.fn()} />)
+      renderWithLang(<ModelBuilder service={baseService} setService={vi.fn()} />)
       expect(screen.getByRole('button', { name: /add model/i })).toBeInTheDocument()
     })
 
     it('shows empty state message when no models exist', () => {
-      render(<ModelBuilder service={baseService} setService={vi.fn()} />)
+      renderWithLang(<ModelBuilder service={baseService} setService={vi.fn()} />)
       expect(screen.getByText(/no data models defined/i)).toBeInTheDocument()
     })
 
     it('does not show any model card when models array is empty', () => {
-      render(<ModelBuilder service={baseService} setService={vi.fn()} />)
+      renderWithLang(<ModelBuilder service={baseService} setService={vi.fn()} />)
       expect(screen.queryByText(/model 1/i)).not.toBeInTheDocument()
     })
   })
@@ -143,8 +148,7 @@ describe('ModelBuilder', () => {
       renderWithState(baseService)
       fireEvent.click(screen.getByRole('button', { name: /add model/i }))
       fireEvent.click(screen.getByRole('button', { name: /add field/i }))
-      // There should be a checkbox associated with "Required" label
-      expect(screen.getByText(/required/i)).toBeInTheDocument()
+      expect(screen.getByText(/required|必填/i)).toBeInTheDocument()
       const checkboxes = screen.getAllByRole('checkbox')
       expect(checkboxes.length).toBeGreaterThan(0)
     })
@@ -164,7 +168,7 @@ describe('ModelBuilder', () => {
       fireEvent.click(screen.getByRole('button', { name: /add model/i }))
       fireEvent.click(screen.getByRole('button', { name: /add field/i }))
       expect(screen.getByPlaceholderText(/fieldName/i)).toBeInTheDocument()
-      fireEvent.click(screen.getByTitle(/remove field/i))
+      fireEvent.click(screen.getByTitle(/remove field|移除欄位/i))
       expect(screen.queryByPlaceholderText(/fieldName/i)).not.toBeInTheDocument()
     })
 
@@ -172,7 +176,7 @@ describe('ModelBuilder', () => {
       renderWithState(baseService)
       fireEvent.click(screen.getByRole('button', { name: /add model/i }))
       fireEvent.click(screen.getByRole('button', { name: /add field/i }))
-      fireEvent.click(screen.getByTitle(/remove field/i))
+      fireEvent.click(screen.getByTitle(/remove field|移除欄位/i))
       expect(screen.getByText(/no fields defined/i)).toBeInTheDocument()
     })
 

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLanguage } from '../i18n/LanguageContext.jsx'
 
 const PRIMITIVE_TYPES = ['string', 'int', 'float', 'boolean', 'date', 'datetime']
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
@@ -21,6 +22,7 @@ const blankMethod = () => ({
 })
 
 export default function MethodBuilder({ service, setService }) {
+  const { t } = useLanguage()
   const isRestLike = service.service_type === 'REST' || service.service_type === 'BOTH'
   const modelNames = service.models.map(m => m.name).filter(Boolean)
   const allTypes = [...PRIMITIVE_TYPES, ...modelNames]
@@ -85,50 +87,50 @@ export default function MethodBuilder({ service, setService }) {
     <div>
       <div className="section-header">
         <div>
-          <h2 className="section-title">Service Methods</h2>
-          <p className="section-description">Define the operations your service will expose.</p>
+          <h2 className="section-title">{t('methodsTitle')}</h2>
+          <p className="section-description">{t('methodsDesc')}</p>
         </div>
         <button className="btn btn-primary" onClick={addMethod}>
-          + Add Method
+          {t('addMethod')}
         </button>
       </div>
 
       {service.methods.length === 0 && (
         <div className="empty-state">
-          <p>No methods defined yet. Click "Add Method" to get started.</p>
+          <p>{t('noMethods')}</p>
         </div>
       )}
 
       {service.methods.map((method, methodIndex) => (
         <div key={methodIndex} className="card method-card">
           <div className="card-header">
-            <h3 className="card-subtitle">Method {methodIndex + 1}</h3>
+            <h3 className="card-subtitle">{t('method')} {methodIndex + 1}</h3>
             <button
               className="btn btn-danger btn-sm"
               onClick={() => removeMethod(methodIndex)}
             >
-              Remove Method
+              {t('removeMethod')}
             </button>
           </div>
 
           <div className="form-row">
             <div className="form-group form-group-flex">
-              <label className="form-label">Method Name</label>
+              <label className="form-label">{t('methodName')}</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. getUser"
+                placeholder={t('methodNamePlaceholder')}
                 value={method.name}
                 onChange={e => updateMethod(methodIndex, 'name', e.target.value)}
               />
             </div>
 
             <div className="form-group form-group-flex">
-              <label className="form-label">Return Type</label>
+              <label className="form-label">{t('returnType')}</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. User or string"
+                placeholder={t('returnTypePlaceholder')}
                 value={method.return_type}
                 onChange={e => updateMethod(methodIndex, 'return_type', e.target.value)}
               />
@@ -136,11 +138,11 @@ export default function MethodBuilder({ service, setService }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Description</label>
+            <label className="form-label">{t('methodDesc')}</label>
             <input
               type="text"
               className="form-input"
-              placeholder="What does this method do?"
+              placeholder={t('methodDescPlaceholder')}
               value={method.description}
               onChange={e => updateMethod(methodIndex, 'description', e.target.value)}
             />
@@ -149,7 +151,7 @@ export default function MethodBuilder({ service, setService }) {
           {isRestLike && (
             <div className="form-row">
               <div className="form-group form-group-flex">
-                <label className="form-label">HTTP Method</label>
+                <label className="form-label">{t('httpMethod')}</label>
                 <select
                   className="form-select"
                   value={method.http_method}
@@ -162,11 +164,11 @@ export default function MethodBuilder({ service, setService }) {
               </div>
 
               <div className="form-group form-group-flex">
-                <label className="form-label">Path</label>
+                <label className="form-label">{t('path')}</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="/users/{id}"
+                  placeholder={t('pathPlaceholder')}
                   value={method.path}
                   onChange={e => updateMethod(methodIndex, 'path', e.target.value)}
                 />
@@ -176,49 +178,49 @@ export default function MethodBuilder({ service, setService }) {
 
           <div className="params-section">
             <div className="params-header">
-              <h4 className="params-title">Parameters</h4>
+              <h4 className="params-title">{t('parameters')}</h4>
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => addParameter(methodIndex)}
               >
-                + Add Parameter
+                {t('addParameter')}
               </button>
             </div>
 
             {method.parameters.length === 0 && (
-              <p className="empty-params">No parameters defined.</p>
+              <p className="empty-params">{t('noParameters')}</p>
             )}
 
             {method.parameters.map((param, paramIndex) => (
               <div key={paramIndex} className="param-row">
                 <div className="param-fields">
                   <div className="form-group">
-                    <label className="form-label form-label-sm">Name</label>
+                    <label className="form-label form-label-sm">{t('paramName')}</label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="paramName"
+                      placeholder={t('paramNamePlaceholder')}
                       value={param.name}
                       onChange={e => updateParameter(methodIndex, paramIndex, 'name', e.target.value)}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label form-label-sm">Type</label>
+                    <label className="form-label form-label-sm">{t('paramType')}</label>
                     <select
                       className="form-select"
                       value={param.type}
                       onChange={e => updateParameter(methodIndex, paramIndex, 'type', e.target.value)}
                     >
-                      {allTypes.map(t => (
-                        <option key={t} value={t}>{t}</option>
+                      {allTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </div>
 
                   {isRestLike && (
                     <div className="form-group">
-                      <label className="form-label form-label-sm">Location</label>
+                      <label className="form-label form-label-sm">{t('paramLocation')}</label>
                       <select
                         className="form-select"
                         value={param.location}
@@ -238,7 +240,7 @@ export default function MethodBuilder({ service, setService }) {
                         checked={param.required}
                         onChange={e => updateParameter(methodIndex, paramIndex, 'required', e.target.checked)}
                       />
-                      <span>Required</span>
+                      <span>{t('paramRequired')}</span>
                     </label>
                   </div>
                 </div>
@@ -246,7 +248,7 @@ export default function MethodBuilder({ service, setService }) {
                 <button
                   className="btn btn-danger btn-sm btn-icon"
                   onClick={() => removeParameter(methodIndex, paramIndex)}
-                  title="Remove parameter"
+                  title={t('removeParam')}
                 >
                   &times;
                 </button>

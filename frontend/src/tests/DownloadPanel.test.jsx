@@ -1,11 +1,11 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import DownloadPanel from '../components/DownloadPanel'
 import axios from 'axios'
+import { renderWithLang } from './testUtils'
 
 vi.mock('axios')
 
-// Suppress jsdom's "Not implemented: window.URL.createObjectURL" noise
 beforeEach(() => {
   vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:mock-url')
   vi.spyOn(window.URL, 'revokeObjectURL').mockReturnValue(undefined)
@@ -45,8 +45,7 @@ const defaultProps = {
 describe('DownloadPanel', () => {
   describe('framework download buttons', () => {
     it('renders no download buttons when no frameworks are selected', () => {
-      render(<DownloadPanel {...defaultProps} selectedFrameworks={[]} />)
-      // The only download button present should be the "Download Tests ZIP" button
+      renderWithLang(<DownloadPanel {...defaultProps} selectedFrameworks={[]} />)
       const downloadButtons = screen.getAllByRole('button')
       const frameworkButtons = downloadButtons.filter(btn =>
         btn.textContent.includes('Download') &&
@@ -56,12 +55,12 @@ describe('DownloadPanel', () => {
     })
 
     it('shows a warning when no frameworks are selected', () => {
-      render(<DownloadPanel {...defaultProps} selectedFrameworks={[]} />)
+      renderWithLang(<DownloadPanel {...defaultProps} selectedFrameworks={[]} />)
       expect(screen.getByText(/no frameworks selected/i)).toBeInTheDocument()
     })
 
     it('renders a download button for each selected framework', () => {
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi', 'rest-nodejs-express']}
@@ -72,7 +71,7 @@ describe('DownloadPanel', () => {
     })
 
     it('renders download button for a single selected framework', () => {
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -82,7 +81,7 @@ describe('DownloadPanel', () => {
     })
 
     it('uses the framework id as the button label when label is not found', () => {
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['unknown-framework']}
@@ -95,52 +94,52 @@ describe('DownloadPanel', () => {
 
   describe('test type checkboxes', () => {
     it('Postman Collection checkbox is always visible regardless of service_type', () => {
-      render(<DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'REST' }} />)
+      renderWithLang(<DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'REST' }} />)
       expect(screen.getByText('Postman Collection')).toBeInTheDocument()
     })
 
     it('Postman Collection checkbox is visible for SOAP service_type too', () => {
-      render(<DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'SOAP' }} />)
+      renderWithLang(<DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'SOAP' }} />)
       expect(screen.getByText('Postman Collection')).toBeInTheDocument()
     })
 
     it('shows SOAP XML Envelopes checkbox when service_type is SOAP', () => {
-      render(
+      renderWithLang(
         <DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'SOAP' }} />
       )
       expect(screen.getByText('SOAP XML Envelopes')).toBeInTheDocument()
     })
 
     it('shows SoapUI Project checkbox when service_type is SOAP', () => {
-      render(
+      renderWithLang(
         <DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'SOAP' }} />
       )
       expect(screen.getByText('SoapUI Project')).toBeInTheDocument()
     })
 
     it('shows SOAP XML Envelopes checkbox when service_type is BOTH', () => {
-      render(
+      renderWithLang(
         <DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'BOTH' }} />
       )
       expect(screen.getByText('SOAP XML Envelopes')).toBeInTheDocument()
     })
 
     it('hides SOAP XML Envelopes checkbox for REST-only service', () => {
-      render(
+      renderWithLang(
         <DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'REST' }} />
       )
       expect(screen.queryByText('SOAP XML Envelopes')).not.toBeInTheDocument()
     })
 
     it('hides SoapUI Project checkbox for REST-only service', () => {
-      render(
+      renderWithLang(
         <DownloadPanel {...defaultProps} service={{ ...baseService, service_type: 'REST' }} />
       )
       expect(screen.queryByText('SoapUI Project')).not.toBeInTheDocument()
     })
 
     it('Postman Collection checkbox is pre-checked by default', () => {
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       const postmanLabel = screen.getByText('Postman Collection').closest('label')
       const checkbox = postmanLabel.querySelector('input[type="checkbox"]')
       expect(checkbox).toBeChecked()
@@ -156,7 +155,7 @@ describe('DownloadPanel', () => {
     })
 
     it('calls axios.post with /api/generate on framework download button click', async () => {
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -172,7 +171,7 @@ describe('DownloadPanel', () => {
     })
 
     it('includes the full service object in the POST body', async () => {
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -188,11 +187,10 @@ describe('DownloadPanel', () => {
     })
 
     it('shows loading text while the download request is in flight', async () => {
-      // Keep the promise pending so we can observe the loading state
       let resolvePost
       axios.post.mockReturnValue(new Promise(resolve => { resolvePost = resolve }))
 
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -201,7 +199,6 @@ describe('DownloadPanel', () => {
       fireEvent.click(screen.getByText(/download python \(fastapi\)/i))
       expect(await screen.findByText(/generating\.\.\./i)).toBeInTheDocument()
 
-      // Clean up by resolving
       resolvePost({
         data: new Blob(['x'], { type: 'application/zip' }),
         headers: { 'content-type': 'application/zip' }
@@ -212,7 +209,7 @@ describe('DownloadPanel', () => {
       let resolvePost
       axios.post.mockReturnValue(new Promise(resolve => { resolvePost = resolve }))
 
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -237,7 +234,7 @@ describe('DownloadPanel', () => {
     it('shows a network error message when axios.post rejects without a response', async () => {
       axios.post.mockRejectedValue(new Error('Network Error'))
 
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -253,7 +250,7 @@ describe('DownloadPanel', () => {
       axiosError.response = { status: 500 }
       axios.post.mockRejectedValue(axiosError)
 
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -261,13 +258,13 @@ describe('DownloadPanel', () => {
       )
       fireEvent.click(screen.getByText(/download python \(fastapi\)/i))
 
-      expect(await screen.findByText(/server error: 500/i)).toBeInTheDocument()
+      expect(await screen.findByText(/server error.*500/i)).toBeInTheDocument()
     })
 
     it('restores the download button after a failed request', async () => {
       axios.post.mockRejectedValue(new Error('Network Error'))
 
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
@@ -290,12 +287,12 @@ describe('DownloadPanel', () => {
     })
 
     it('renders the Download Tests ZIP button', () => {
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       expect(screen.getByText(/download tests zip/i)).toBeInTheDocument()
     })
 
     it('clicking Download Tests ZIP calls axios.post with /api/generate-tests', async () => {
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       fireEvent.click(screen.getByText(/download tests zip/i))
       await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1))
       expect(axios.post).toHaveBeenCalledWith(
@@ -306,8 +303,7 @@ describe('DownloadPanel', () => {
     })
 
     it('sends selected test types in the POST body', async () => {
-      render(<DownloadPanel {...defaultProps} />)
-      // Default selection is ['postman']
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       fireEvent.click(screen.getByText(/download tests zip/i))
       await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1))
       expect(axios.post).toHaveBeenCalledWith(
@@ -321,7 +317,7 @@ describe('DownloadPanel', () => {
       let resolvePost
       axios.post.mockReturnValue(new Promise(resolve => { resolvePost = resolve }))
 
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       fireEvent.click(screen.getByText(/download tests zip/i))
 
       expect(await screen.findByText(/generating tests/i)).toBeInTheDocument()
@@ -333,21 +329,20 @@ describe('DownloadPanel', () => {
     })
 
     it('shows success message after tests download completes', async () => {
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       fireEvent.click(screen.getByText(/download tests zip/i))
       expect(await screen.findByText(/tests downloaded successfully/i)).toBeInTheDocument()
     })
 
     it('shows error message when tests download fails', async () => {
       axios.post.mockRejectedValue(new Error('Network Error'))
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       fireEvent.click(screen.getByText(/download tests zip/i))
       expect(await screen.findByText(/network error/i)).toBeInTheDocument()
     })
 
     it('Download Tests ZIP button is disabled when no test types are selected', () => {
-      render(<DownloadPanel {...defaultProps} />)
-      // Uncheck the default Postman Collection checkbox
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       const postmanLabel = screen.getByText('Postman Collection').closest('label')
       fireEvent.click(postmanLabel.querySelector('input[type="checkbox"]'))
       const testsBtn = screen.getByText(/download tests zip/i).closest('button')
@@ -357,28 +352,27 @@ describe('DownloadPanel', () => {
 
   describe('service summary', () => {
     it('displays the service name in the summary', () => {
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       expect(screen.getByText('MyService')).toBeInTheDocument()
     })
 
     it('displays the service type in the summary', () => {
-      render(<DownloadPanel {...defaultProps} />)
+      renderWithLang(<DownloadPanel {...defaultProps} />)
       expect(screen.getByText('REST')).toBeInTheDocument()
     })
 
     it('displays "None selected" when no frameworks are selected', () => {
-      render(<DownloadPanel {...defaultProps} selectedFrameworks={[]} />)
+      renderWithLang(<DownloadPanel {...defaultProps} selectedFrameworks={[]} />)
       expect(screen.getByText(/none selected/i)).toBeInTheDocument()
     })
 
     it('displays the selected framework ids in the summary', () => {
-      render(
+      renderWithLang(
         <DownloadPanel
           {...defaultProps}
           selectedFrameworks={['rest-python-fastapi']}
         />
       )
-      // Summary section shows the selected frameworks joined by comma
       expect(screen.getAllByText(/rest-python-fastapi/).length).toBeGreaterThan(0)
     })
   })

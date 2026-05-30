@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLanguage } from '../i18n/LanguageContext.jsx'
 
 const PRIMITIVE_TYPES = ['string', 'int', 'float', 'boolean', 'date', 'datetime']
 
@@ -14,6 +15,8 @@ const blankModel = () => ({
 })
 
 export default function ModelBuilder({ service, setService }) {
+  const { t } = useLanguage()
+
   const addModel = () => {
     setService(prev => ({
       ...prev,
@@ -74,38 +77,38 @@ export default function ModelBuilder({ service, setService }) {
     <div>
       <div className="section-header">
         <div>
-          <h2 className="section-title">Data Models</h2>
-          <p className="section-description">Define reusable data structures used by your service methods.</p>
+          <h2 className="section-title">{t('modelsTitle')}</h2>
+          <p className="section-description">{t('modelsDesc')}</p>
         </div>
         <button className="btn btn-primary" onClick={addModel}>
-          + Add Model
+          {t('addModel')}
         </button>
       </div>
 
       {service.models.length === 0 && (
         <div className="empty-state">
-          <p>No data models defined. Models are optional — add them if your methods use complex types.</p>
+          <p>{t('noModels')}</p>
         </div>
       )}
 
       {service.models.map((model, modelIndex) => (
         <div key={modelIndex} className="card method-card">
           <div className="card-header">
-            <h3 className="card-subtitle">Model {modelIndex + 1}</h3>
+            <h3 className="card-subtitle">{t('model')} {modelIndex + 1}</h3>
             <button
               className="btn btn-danger btn-sm"
               onClick={() => removeModel(modelIndex)}
             >
-              Remove Model
+              {t('removeModel')}
             </button>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Model Name</label>
+            <label className="form-label">{t('modelName')}</label>
             <input
               type="text"
               className="form-input form-input-medium"
-              placeholder="e.g. User"
+              placeholder={t('modelNamePlaceholder')}
               value={model.name}
               onChange={e => updateModel(modelIndex, 'name', e.target.value)}
             />
@@ -113,42 +116,42 @@ export default function ModelBuilder({ service, setService }) {
 
           <div className="params-section">
             <div className="params-header">
-              <h4 className="params-title">Fields</h4>
+              <h4 className="params-title">{t('fields')}</h4>
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => addField(modelIndex)}
               >
-                + Add Field
+                {t('addField')}
               </button>
             </div>
 
             {model.fields.length === 0 && (
-              <p className="empty-params">No fields defined for this model.</p>
+              <p className="empty-params">{t('noFields')}</p>
             )}
 
             {model.fields.map((field, fieldIndex) => (
               <div key={fieldIndex} className="param-row">
                 <div className="param-fields">
                   <div className="form-group">
-                    <label className="form-label form-label-sm">Field Name</label>
+                    <label className="form-label form-label-sm">{t('fieldName')}</label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="fieldName"
+                      placeholder={t('fieldNamePlaceholder')}
                       value={field.name}
                       onChange={e => updateField(modelIndex, fieldIndex, 'name', e.target.value)}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label form-label-sm">Type</label>
+                    <label className="form-label form-label-sm">{t('fieldType')}</label>
                     <select
                       className="form-select"
                       value={field.type}
                       onChange={e => updateField(modelIndex, fieldIndex, 'type', e.target.value)}
                     >
-                      {PRIMITIVE_TYPES.map(t => (
-                        <option key={t} value={t}>{t}</option>
+                      {PRIMITIVE_TYPES.map(type => (
+                        <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </div>
@@ -160,7 +163,7 @@ export default function ModelBuilder({ service, setService }) {
                         checked={field.required}
                         onChange={e => updateField(modelIndex, fieldIndex, 'required', e.target.checked)}
                       />
-                      <span>Required</span>
+                      <span>{t('fieldRequired')}</span>
                     </label>
                   </div>
                 </div>
@@ -168,7 +171,7 @@ export default function ModelBuilder({ service, setService }) {
                 <button
                   className="btn btn-danger btn-sm btn-icon"
                   onClick={() => removeField(modelIndex, fieldIndex)}
-                  title="Remove field"
+                  title={t('removeField')}
                 >
                   &times;
                 </button>

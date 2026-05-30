@@ -32,6 +32,11 @@ function clickNext(times = 1) {
   }
 }
 
+// Helper: get Previous button (label includes arrow in zh-TW and en)
+function getPrevButton() {
+  return screen.getByRole('button', { name: /previous|上一步/i })
+}
+
 describe('App', () => {
   describe('initial render', () => {
     it('renders the page heading', async () => {
@@ -111,7 +116,9 @@ describe('App', () => {
     it('clicking Next twice shows step 3 (ModelBuilder)', async () => {
       render(<App />)
       clickNext(2)
-      expect(screen.getByText(/data models/i)).toBeInTheDocument()
+      // "Data Models" appears in both step label and section heading; check at least one
+      expect(screen.getAllByText(/data models/i).length).toBeGreaterThan(0)
+      expect(screen.getByText(/define reusable data structures/i)).toBeInTheDocument()
     })
 
     it('clicking Next three times shows step 4 (FrameworkSelector)', async () => {

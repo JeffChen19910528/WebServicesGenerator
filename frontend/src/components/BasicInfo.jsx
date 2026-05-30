@@ -1,24 +1,27 @@
 import React from 'react'
+import { useLanguage } from '../i18n/LanguageContext.jsx'
 
 export default function BasicInfo({ service, setService }) {
+  const { t } = useLanguage()
+
   const update = (field, value) => {
     setService(prev => ({ ...prev, [field]: value }))
   }
 
   return (
     <div className="card">
-      <h2 className="card-title">Basic Service Information</h2>
-      <p className="card-description">Define the fundamental properties of your web service.</p>
+      <h2 className="card-title">{t('basicInfoTitle')}</h2>
+      <p className="card-description">{t('basicInfoDesc')}</p>
 
       <div className="form-group">
         <label className="form-label" htmlFor="service_name">
-          Service Name <span className="required">*</span>
+          {t('serviceName')} <span className="required">*</span>
         </label>
         <input
           id="service_name"
           type="text"
           className="form-input"
-          placeholder="e.g. UserManagementService"
+          placeholder={t('serviceNamePlaceholder')}
           value={service.service_name}
           onChange={e => update('service_name', e.target.value)}
           required
@@ -26,7 +29,7 @@ export default function BasicInfo({ service, setService }) {
       </div>
 
       <div className="form-group">
-        <label className="form-label">Service Type</label>
+        <label className="form-label">{t('serviceType')}</label>
         <div className="radio-group">
           {['SOAP', 'REST', 'BOTH'].map(type => (
             <label key={type} className="radio-label">
@@ -44,24 +47,24 @@ export default function BasicInfo({ service, setService }) {
       </div>
 
       <div className="form-group">
-        <label className="form-label" htmlFor="namespace">Namespace</label>
+        <label className="form-label" htmlFor="namespace">{t('namespace')}</label>
         <input
           id="namespace"
           type="text"
           className="form-input"
-          placeholder="http://example.com/service"
+          placeholder={t('namespacePlaceholder')}
           value={service.namespace}
           onChange={e => update('namespace', e.target.value)}
         />
-        <p className="form-hint">Used for SOAP services (e.g. http://example.com/service)</p>
+        <p className="form-hint">{t('namespaceHint')}</p>
       </div>
 
       <div className="form-group">
-        <label className="form-label" htmlFor="description">Description</label>
+        <label className="form-label" htmlFor="description">{t('description')}</label>
         <textarea
           id="description"
           className="form-textarea"
-          placeholder="Describe what this service does..."
+          placeholder={t('descriptionPlaceholder')}
           value={service.description}
           onChange={e => update('description', e.target.value)}
           rows={4}
@@ -69,7 +72,7 @@ export default function BasicInfo({ service, setService }) {
       </div>
 
       <div className="form-group">
-        <label className="form-label" htmlFor="version">Version</label>
+        <label className="form-label" htmlFor="version">{t('version')}</label>
         <input
           id="version"
           type="text"

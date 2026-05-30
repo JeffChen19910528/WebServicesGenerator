@@ -1,22 +1,31 @@
 # Web Services Generator
 
-一個能自動建立 Web Services 專案的製造器工具。只需在介面填寫欄位，即可產生多種語言/框架的完整專案代碼並下載，同時支援輸出 SOAP XML、SoapUI Project、Postman Collection 等測試格式。
+[繁體中文](#繁體中文) | [English](#english)
 
 ---
 
-## 功能
+## 繁體中文
+
+一個能自動建立 Web Services 專案的製造器工具。只需在介面填寫欄位，即可產生多種語言/框架的完整專案代碼並下載，同時支援輸出 SOAP XML、SoapUI Project、Postman Collection 等測試格式。
+
+介面支援 **English / 繁體中文** 語系切換，點擊右上角的 EN | 繁中 按鈕即可切換。
+
+---
+
+### 功能
 
 - **支援 SOAP 與 REST**：可選擇只產生 SOAP、只產生 REST，或同時產生兩者
 - **21 種語言/框架輸出**：涵蓋 Java、Python、Node.js、C#、PHP、Go、Ruby
 - **3 種測試格式**：SOAP XML Envelope、SoapUI Project、Postman Collection
 - **ZIP 下載**：所有產生的檔案打包成 ZIP 直接下載
 - **5 步驟精靈介面**：引導式表單，逐步填寫服務定義
+- **多語系 UI**：English / 繁體中文 即時切換
 
 ---
 
-## 支援的框架
+### 支援的框架
 
-### SOAP
+#### SOAP
 | 框架 | 語言 |
 |------|------|
 | Spring-WS | Java |
@@ -27,7 +36,7 @@
 | SoapServer | PHP |
 | net/http + WSDL | Go |
 
-### REST
+#### REST
 | 框架 | 語言 |
 |------|------|
 | Spring Boot | Java |
@@ -47,15 +56,15 @@
 
 ---
 
-## 快速開始
+### 快速開始
 
-### 需求環境
+#### 需求環境
 
 - Python 3.10+
 - Node.js 18+
 - npm
 
-### 一鍵啟動（Windows）
+#### 一鍵啟動（Windows）
 
 直接雙擊 **`start.bat`** 即可。腳本會自動：
 1. 檢查 Python 與 Node.js 是否安裝
@@ -67,7 +76,7 @@
 
 > 若 Windows 顯示安全性警告，請點選「更多資訊」→「仍要執行」。
 
-### 手動啟動
+#### 手動啟動
 
 **後端：**
 ```bash
@@ -89,11 +98,9 @@ npm run dev
 
 ---
 
-## 使用說明
+### 使用說明
 
-### Step 1 — Basic Info（基本資料）
-
-填寫服務的基本設定：
+#### Step 1 — 基本資訊
 
 | 欄位 | 說明 | 範例 |
 |------|------|------|
@@ -103,130 +110,28 @@ npm run dev
 | Description | 服務描述 | 選填 |
 | Version | 版本號 | `1.0` |
 
-### Step 2 — Methods（方法定義）
+#### Step 2 — 方法
 
-新增服務的操作方法。每個方法可設定：
+新增服務的操作方法，每個方法可設定名稱、回傳型別、HTTP Method、路徑與參數列表。
 
-- **Name**：方法名稱（如 `getUser`）
-- **Return Type**：回傳型別（如 `User`、`string`、`void`）
-- **HTTP Method**：GET / POST / PUT / DELETE / PATCH（REST 模式）
-- **Path**：URL 路徑，路徑參數用 `{paramName}`（如 `/users/{userId}`）
-- **Parameters**：參數列表，每個參數設定名稱、型別、是否必填、位置（query / path / body / header）
+#### Step 3 — 資料模型
 
-**支援的型別**：`string`、`int`、`float`、`boolean`、`date`、`datetime`，以及在 Step 3 定義的 Model 名稱。
+定義複雜型別，每個 Model 可包含多個 Field（名稱、型別、是否必填）。
 
-### Step 3 — Data Models（資料模型）
+#### Step 4 — 選擇框架
 
-定義複雜型別。每個 Model 可包含多個 Field，每個 Field 設定名稱、型別、是否必填。
+勾選想要產生的輸出框架，根據服務類型自動篩選。
 
-範例：
+#### Step 5 — 下載
 
-```
-Model: User
-  - id: int (required)
-  - name: string (required)
-  - email: string (optional)
-  - active: boolean (required)
-```
-
-### Step 4 — Frameworks（選擇框架）
-
-勾選想要產生的輸出框架。根據 Step 1 選擇的服務類型，會自動篩選顯示相應的 SOAP 或 REST 框架。
-
-### Step 5 — Download（下載）
-
-**下載專案代碼**：每個勾選的框架各有一個下載按鈕，點擊後下載對應語言的完整專案 ZIP。
-
-**下載測試檔案**：選擇要輸出的測試格式，點擊下載：
-
-| 格式 | 說明 | 用途 |
-|------|------|------|
-| SOAP XML Envelopes | 每個 method 的 SOAP 1.1 與 1.2 請求範本 | cURL、Insomnia、任何 HTTP 工具 |
-| SoapUI Project | 可直接匯入 SoapUI 5.x 的 `.xml` | SoapUI 測試 |
-| Postman Collection | Postman Collection v2.1 + Environment | Postman 測試 |
+- **下載專案代碼**：每個框架各有一個下載按鈕，下載對應語言的完整專案 ZIP
+- **下載測試檔案**：選擇 SOAP XML、SoapUI Project 或 Postman Collection 格式後下載
 
 ---
 
-## API 文件
+### 執行測試
 
-後端提供 3 個端點：
-
-### `GET /api/frameworks`
-
-取得所有支援的框架清單。
-
-**回應範例：**
-```json
-{
-  "soap": [
-    {"id": "soap-java-spring-ws", "label": "Java (Spring-WS)"},
-    ...
-  ],
-  "rest": [
-    {"id": "rest-python-fastapi", "label": "Python (FastAPI)"},
-    ...
-  ]
-}
-```
-
-### `POST /api/generate`
-
-產生指定框架的專案代碼，回傳 ZIP 檔案。
-
-**Request Body：**
-```json
-{
-  "service": {
-    "service_name": "UserService",
-    "service_type": "REST",
-    "namespace": "http://example.com/userservice",
-    "version": "1.0",
-    "methods": [
-      {
-        "name": "getUser",
-        "http_method": "GET",
-        "path": "/users/{userId}",
-        "return_type": "User",
-        "parameters": [
-          {"name": "userId", "type": "int", "required": true, "location": "path"}
-        ]
-      }
-    ],
-    "models": [
-      {
-        "name": "User",
-        "fields": [
-          {"name": "id", "type": "int", "required": true},
-          {"name": "name", "type": "string", "required": true}
-        ]
-      }
-    ]
-  },
-  "framework": "rest-python-fastapi"
-}
-```
-
-**回應：** `application/zip`
-
-### `POST /api/generate-tests`
-
-產生測試格式檔案，回傳 ZIP 檔案。
-
-**Request Body：**
-```json
-{
-  "service": { ...同上... },
-  "test_types": ["soap-xml", "soapui", "postman"]
-}
-```
-
-**`test_types` 可選值：** `soap-xml`、`soapui`、`postman`
-
----
-
-## 執行測試
-
-### 後端測試（pytest）
+#### 後端測試（pytest）
 
 ```bash
 cd backend
@@ -234,16 +139,9 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-測試涵蓋範圍：
-- **test_models.py** — Pydantic 資料模型驗證（50 個測試）
-- **test_api.py** — FastAPI 端點整合測試，包含對 21 種框架全部驗證（60 個測試）
-- **test_generators_soap.py** — 7 個 SOAP 生成器（98 個測試）
-- **test_generators_rest.py** — 14 個 REST 生成器（159 個測試）
-- **test_test_generators.py** — 3 個測試格式生成器（90 個測試）
-
 共 **407 個測試**，全部通過。
 
-### 前端測試（Vitest）
+#### 前端測試（Vitest）
 
 ```bash
 cd frontend
@@ -252,37 +150,245 @@ npm test
 ```
 
 測試涵蓋範圍：
-- **App.test.jsx** — 精靈導覽、步驟切換、API 呼叫
-- **BasicInfo.test.jsx** — 表單欄位渲染與狀態更新
-- **MethodBuilder.test.jsx** — 動態新增/刪除方法與參數
-- **ModelBuilder.test.jsx** — 動態新增/刪除模型與欄位
-- **FrameworkSelector.test.jsx** — 框架勾選、依服務類型篩選
-- **StepIndicator.test.jsx** — 步驟指示器狀態
-- **DownloadPanel.test.jsx** — 下載按鈕、loading 狀態、錯誤處理
+- **App.test.jsx** — 精靈導覽、步驟切換、API 呼叫（25 個測試）
+- **BasicInfo.test.jsx** — 表單欄位渲染與狀態更新（13 個測試）
+- **MethodBuilder.test.jsx** — 動態新增/刪除方法與參數（21 個測試）
+- **ModelBuilder.test.jsx** — 動態新增/刪除模型與欄位（20 個測試）
+- **FrameworkSelector.test.jsx** — 框架勾選、依服務類型篩選（17 個測試）
+- **StepIndicator.test.jsx** — 步驟指示器狀態（17 個測試）
+- **DownloadPanel.test.jsx** — 下載按鈕、loading 狀態、錯誤處理（31 個測試）
+- **i18n.test.jsx** — 語系切換、翻譯完整性、LanguageContext（17 個測試）
 
-共 **120 個測試**。
+共 **161 個測試**，全部通過。
 
 ---
 
-## 專案結構
+## English
+
+A web service project generator. Fill in the form fields and generate complete project code for multiple languages/frameworks, with support for SOAP XML, SoapUI Project, and Postman Collection test artifacts.
+
+The UI supports **English / 繁體中文** language switching — click the EN | 繁中 button in the top-right corner of the header.
+
+---
+
+### Features
+
+- **SOAP & REST support**: Generate SOAP only, REST only, or both
+- **21 language/framework outputs**: Java, Python, Node.js, C#, PHP, Go, Ruby
+- **3 test formats**: SOAP XML Envelope, SoapUI Project, Postman Collection
+- **ZIP download**: All generated files bundled as a ZIP
+- **5-step wizard UI**: Guided form for step-by-step service definition
+- **Multi-language UI**: Switch between English and Traditional Chinese instantly
+
+---
+
+### Supported Frameworks
+
+#### SOAP
+| Framework | Language |
+|-----------|----------|
+| Spring-WS | Java |
+| Apache CXF | Java |
+| spyne | Python |
+| soap (npm) | Node.js |
+| CoreWCF | C# |
+| SoapServer | PHP |
+| net/http + WSDL | Go |
+
+#### REST
+| Framework | Language |
+|-----------|----------|
+| Spring Boot | Java |
+| FastAPI | Python |
+| Flask | Python |
+| Django REST Framework | Python |
+| Express | Node.js |
+| NestJS | Node.js |
+| Fastify | Node.js |
+| ASP.NET Core Web API | C# |
+| Laravel | PHP |
+| Slim 4 | PHP |
+| Gin | Go |
+| Echo | Go |
+| Rails API | Ruby |
+| Sinatra | Ruby |
+
+---
+
+### Quick Start
+
+#### Requirements
+
+- Python 3.10+
+- Node.js 18+
+- npm
+
+#### One-Click Start (Windows)
+
+Double-click **`start.bat`**. The script will:
+1. Check Python and Node.js installations
+2. Install backend and frontend dependencies (first run takes a moment)
+3. Start the backend (port 8000) and frontend (port 5173)
+4. Open `http://localhost:5173` in your browser automatically
+
+**Stop services**: Double-click **`stop.bat`**.
+
+> If Windows shows a security warning, click "More info" → "Run anyway".
+
+#### Manual Start
+
+**Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+API documentation (Swagger UI) is available at `http://localhost:8000/docs`.
+
+**Frontend (open a separate terminal):**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open your browser at `http://localhost:5173`.
+
+---
+
+### Usage
+
+#### Step 1 — Basic Info
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| Service Name | Name of the service | `UserService` |
+| Service Type | Protocol type | SOAP / REST / BOTH |
+| Namespace | XML namespace (SOAP) | `http://example.com/service` |
+| Description | Service description | optional |
+| Version | Version string | `1.0` |
+
+#### Step 2 — Methods
+
+Add operations your service exposes. Each method has a name, return type, HTTP method, path, and a parameter list.
+
+#### Step 3 — Data Models
+
+Define reusable complex types. Each model contains fields with a name, type, and required flag.
+
+#### Step 4 — Select Frameworks
+
+Check the frameworks you want code generated for. The list is filtered automatically based on service type.
+
+#### Step 5 — Download
+
+- **Download project code**: One button per framework; each downloads a complete project ZIP
+- **Download test files**: Select SOAP XML, SoapUI Project, or Postman Collection, then download
+
+---
+
+### API Reference
+
+#### `GET /api/frameworks`
+
+Returns all supported frameworks.
+
+**Response:**
+```json
+{
+  "soap": [{"id": "soap-java-spring-ws", "label": "Java (Spring-WS)"}, ...],
+  "rest": [{"id": "rest-python-fastapi", "label": "Python (FastAPI)"}, ...]
+}
+```
+
+#### `POST /api/generate`
+
+Generates project code for a given framework. Returns a ZIP file.
+
+**Request body:**
+```json
+{
+  "service": {
+    "service_name": "UserService",
+    "service_type": "REST",
+    "namespace": "http://example.com/userservice",
+    "version": "1.0",
+    "methods": [...],
+    "models": [...]
+  },
+  "framework": "rest-python-fastapi"
+}
+```
+
+#### `POST /api/generate-tests`
+
+Generates test artifact files. Returns a ZIP file.
+
+**Request body:**
+```json
+{
+  "service": { ... },
+  "test_types": ["soap-xml", "soapui", "postman"]
+}
+```
+
+---
+
+### Running Tests
+
+#### Backend tests (pytest)
+
+```bash
+cd backend
+pip install -r requirements.txt
+pytest -v
+```
+
+**407 tests**, all passing.
+
+#### Frontend tests (Vitest)
+
+```bash
+cd frontend
+npm install
+npm test
+```
+
+| Test file | Coverage | Count |
+|-----------|----------|-------|
+| App.test.jsx | Wizard navigation, step switching, API calls | 25 |
+| BasicInfo.test.jsx | Form field rendering and state updates | 13 |
+| MethodBuilder.test.jsx | Add/remove methods and parameters | 21 |
+| ModelBuilder.test.jsx | Add/remove models and fields | 20 |
+| FrameworkSelector.test.jsx | Checkbox selection, filtering by service type | 17 |
+| StepIndicator.test.jsx | Step indicator state | 17 |
+| DownloadPanel.test.jsx | Download buttons, loading state, error handling | 31 |
+| i18n.test.jsx | Language switching, translation completeness, LanguageContext | 17 |
+
+**161 tests**, all passing.
+
+---
+
+### Project Structure
 
 ```
 webservices/
 ├── backend/
-│   ├── main.py                      # FastAPI 主程式
-│   ├── models.py                    # Pydantic 資料模型
+│   ├── main.py                      # FastAPI main app
+│   ├── models.py                    # Pydantic data models
 │   ├── requirements.txt
 │   ├── pytest.ini
 │   ├── generators/
-│   │   ├── __init__.py              # get_generator() 工廠函式
-│   │   ├── base.py                  # BaseGenerator 抽象類別
-│   │   ├── soap/                    # 7 個 SOAP 生成器
-│   │   └── rest/                    # 14 個 REST 生成器
+│   │   ├── __init__.py              # get_generator() factory
+│   │   ├── base.py                  # BaseGenerator abstract class
+│   │   ├── soap/                    # 7 SOAP generators
+│   │   └── rest/                    # 14 REST generators
 │   ├── test_generators/
-│   │   ├── soap_xml.py              # SOAP XML Envelope 生成器
-│   │   ├── soapui_project.py        # SoapUI Project 生成器
-│   │   └── postman_collection.py    # Postman Collection 生成器
-│   └── tests/                       # pytest 測試
+│   │   ├── soap_xml.py
+│   │   ├── soapui_project.py
+│   │   └── postman_collection.py
+│   └── tests/
 │       ├── conftest.py
 │       ├── test_models.py
 │       ├── test_api.py
@@ -295,9 +401,12 @@ webservices/
     ├── vitest.config.js
     ├── index.html
     └── src/
-        ├── App.jsx                  # 5 步驟精靈控制器
+        ├── App.jsx                  # 5-step wizard controller
         ├── App.css
         ├── main.jsx
+        ├── i18n/
+        │   ├── translations.js      # EN / zh-TW translation strings
+        │   └── LanguageContext.jsx  # React context + useLanguage hook
         ├── components/
         │   ├── BasicInfo.jsx
         │   ├── MethodBuilder.jsx
@@ -305,14 +414,23 @@ webservices/
         │   ├── FrameworkSelector.jsx
         │   ├── DownloadPanel.jsx
         │   └── StepIndicator.jsx
-        └── tests/                   # Vitest 測試
+        └── tests/
+            ├── testUtils.jsx        # renderWithLang helper
+            ├── i18n.test.jsx
+            ├── App.test.jsx
+            ├── BasicInfo.test.jsx
+            ├── MethodBuilder.test.jsx
+            ├── ModelBuilder.test.jsx
+            ├── FrameworkSelector.test.jsx
+            ├── StepIndicator.test.jsx
+            └── DownloadPanel.test.jsx
 ```
 
 ---
 
-## 新增自訂生成器
+### Adding a Custom Generator
 
-1. 在 `backend/generators/soap/` 或 `backend/generators/rest/` 建立新 Python 檔案
-2. 繼承 `BaseGenerator` 並實作 `generate() -> Dict[str, str]`（key = 檔案路徑，value = 檔案內容）
-3. 在 `backend/generators/__init__.py` 的 `GENERATORS` dict 加入新的 framework ID
-4. 在 `backend/main.py` 的 `/api/frameworks` 回應中加入對應的 label
+1. Create a new Python file in `backend/generators/soap/` or `backend/generators/rest/`
+2. Extend `BaseGenerator` and implement `generate() -> Dict[str, str]` (key = file path, value = file content)
+3. Add the new framework ID to the `GENERATORS` dict in `backend/generators/__init__.py`
+4. Add the corresponding label to the `/api/frameworks` response in `backend/main.py`

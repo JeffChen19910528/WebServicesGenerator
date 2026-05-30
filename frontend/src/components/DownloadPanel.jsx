@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios'
+import { useLanguage } from '../i18n/LanguageContext.jsx'
 
 const ALL_TEST_TYPES = [
   { id: 'soap-xml', label: 'SOAP XML Envelopes', soapOnly: true },
@@ -19,6 +20,7 @@ function triggerDownload(data, filename) {
 }
 
 export default function DownloadPanel({ service, selectedFrameworks, frameworks }) {
+  const { t } = useLanguage()
   const [loadingFramework, setLoadingFramework] = useState(null)
   const [frameworkErrors, setFrameworkErrors] = useState({})
   const [selectedTestTypes, setSelectedTestTypes] = useState(['postman'])
@@ -28,8 +30,8 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
 
   const showSoap = service.service_type === 'SOAP' || service.service_type === 'BOTH'
 
-  const availableTestTypes = ALL_TEST_TYPES.filter(t => {
-    if (t.soapOnly && !showSoap) return false
+  const availableTestTypes = ALL_TEST_TYPES.filter(testType => {
+    if (testType.soapOnly && !showSoap) return false
     return true
   })
 
@@ -54,8 +56,8 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
       triggerDownload(response.data, filename)
     } catch (err) {
       const msg = err.response
-        ? `Server error: ${err.response.status}`
-        : 'Network error. Is the backend running?'
+        ? `${t('serverError')} ${err.response.status}`
+        : t('networkError')
       setFrameworkErrors(prev => ({ ...prev, [frameworkId]: msg }))
     } finally {
       setLoadingFramework(null)
@@ -64,7 +66,7 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
 
   const toggleTestType = (id) => {
     setSelectedTestTypes(prev =>
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     )
   }
 
@@ -85,8 +87,8 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
       setTestsSuccess(true)
     } catch (err) {
       const msg = err.response
-        ? `Server error: ${err.response.status}`
-        : 'Network error. Is the backend running?'
+        ? `${t('serverError')} ${err.response.status}`
+        : t('networkError')
       setTestsError(msg)
     } finally {
       setLoadingTests(false)
@@ -97,52 +99,50 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
     <div>
       <div className="section-header">
         <div>
-          <h2 className="section-title">Generate &amp; Download</h2>
-          <p className="section-description">Download your generated project code and test files.</p>
+          <h2 className="section-title">{t('downloadTitle')}</h2>
+          <p className="section-description">{t('downloadDesc')}</p>
         </div>
       </div>
 
-      {/* Service Summary */}
       <div className="card summary-card">
-        <h3 className="card-subtitle">Service Summary</h3>
+        <h3 className="card-subtitle">{t('serviceSummary')}</h3>
         <div className="summary-grid">
           <div className="summary-item">
-            <span className="summary-label">Name</span>
-            <span className="summary-value">{service.service_name || <em>Unnamed</em>}</span>
+            <span className="summary-label">{t('summaryName')}</span>
+            <span className="summary-value">{service.service_name || <em>{t('unnamed')}</em>}</span>
           </div>
           <div className="summary-item">
-            <span className="summary-label">Type</span>
+            <span className="summary-label">{t('summaryType')}</span>
             <span className="summary-value">{service.service_type}</span>
           </div>
           <div className="summary-item">
-            <span className="summary-label">Version</span>
+            <span className="summary-label">{t('summaryVersion')}</span>
             <span className="summary-value">{service.version}</span>
           </div>
           <div className="summary-item">
-            <span className="summary-label">Methods</span>
+            <span className="summary-label">{t('summaryMethods')}</span>
             <span className="summary-value">{service.methods.length}</span>
           </div>
           <div className="summary-item">
-            <span className="summary-label">Models</span>
+            <span className="summary-label">{t('summaryModels')}</span>
             <span className="summary-value">{service.models.length}</span>
           </div>
           <div className="summary-item">
-            <span className="summary-label">Frameworks</span>
+            <span className="summary-label">{t('summaryFrameworks')}</span>
             <span className="summary-value">
-              {selectedFrameworks.length > 0 ? selectedFrameworks.join(', ') : <em>None selected</em>}
+              {selectedFrameworks.length > 0 ? selectedFrameworks.join(', ') : <em>{t('noneSelected')}</em>}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Download Projects */}
       <div className="card">
-        <h3 className="card-subtitle">Download Projects</h3>
-        <p className="card-description">Download a ZIP containing the generated project for each framework.</p>
+        <h3 className="card-subtitle">{t('downloadProjects')}</h3>
+        <p className="card-description">{t('downloadProjectsDesc')}</p>
 
         {selectedFrameworks.length === 0 && (
           <div className="alert alert-warning">
-            No frameworks selected. Go back to step 4 to choose at least one framework.
+            {t('noFrameworksWarning')}
           </div>
         )}
 
@@ -157,11 +157,11 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
                 {loadingFramework === fwId ? (
                   <>
                     <span className="spinner" />
-                    Generating...
+                    {t('generating')}
                   </>
                 ) : (
                   <>
-                    &#8681; Download {getFrameworkLabel(fwId)}
+                    &#8681; {t('download')} {getFrameworkLabel(fwId)}
                   </>
                 )}
               </button>
@@ -173,10 +173,9 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
         </div>
       </div>
 
-      {/* Download Tests */}
       <div className="card">
-        <h3 className="card-subtitle">Download Tests</h3>
-        <p className="card-description">Select the test artifact types to include in the download.</p>
+        <h3 className="card-subtitle">{t('downloadTests')}</h3>
+        <p className="card-description">{t('downloadTestsDesc')}</p>
 
         <div className="test-type-options">
           {availableTestTypes.map(testType => (
@@ -199,10 +198,10 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
           {loadingTests ? (
             <>
               <span className="spinner" />
-              Generating Tests...
+              {t('generatingTests')}
             </>
           ) : (
-            <>&#8681; Download Tests ZIP</>
+            <>&#8681; {t('downloadTestsZip')}</>
           )}
         </button>
 
@@ -210,7 +209,7 @@ export default function DownloadPanel({ service, selectedFrameworks, frameworks 
           <p className="error-msg" style={{ marginTop: '0.75rem' }}>{testsError}</p>
         )}
         {testsSuccess && (
-          <p className="success-msg" style={{ marginTop: '0.75rem' }}>Tests downloaded successfully!</p>
+          <p className="success-msg" style={{ marginTop: '0.75rem' }}>{t('testsSuccess')}</p>
         )}
       </div>
     </div>

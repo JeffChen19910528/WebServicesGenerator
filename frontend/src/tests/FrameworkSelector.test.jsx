@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import FrameworkSelector from '../components/FrameworkSelector'
+import { renderWithLang } from './testUtils'
 
 const mockFrameworks = {
   soap: [
@@ -30,7 +31,7 @@ describe('FrameworkSelector', () => {
 
   describe('section visibility by service_type', () => {
     it('shows REST frameworks when service_type is REST', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -42,7 +43,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('hides SOAP frameworks when service_type is REST', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -54,7 +55,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('shows SOAP frameworks when service_type is SOAP', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -66,7 +67,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('hides REST frameworks when service_type is SOAP', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -78,7 +79,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('shows both SOAP and REST sections when service_type is BOTH', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -92,7 +93,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('renders "SOAP Frameworks" group title when SOAP is visible', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -103,7 +104,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('renders "REST Frameworks" group title when REST is visible', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -116,7 +117,7 @@ describe('FrameworkSelector', () => {
 
   describe('checkbox state', () => {
     it('selected framework checkbox is checked', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -124,14 +125,13 @@ describe('FrameworkSelector', () => {
           selected={['rest-python-fastapi']}
         />
       )
-      // The checkbox for the FastAPI framework card should be checked
       const fastapiLabel = screen.getByText('Python (FastAPI)').closest('label')
       const checkbox = fastapiLabel.querySelector('input[type="checkbox"]')
       expect(checkbox).toBeChecked()
     })
 
     it('unselected framework checkbox is not checked', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -145,7 +145,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('all checkboxes unchecked when selected is empty', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -160,7 +160,7 @@ describe('FrameworkSelector', () => {
 
   describe('onChange interactions', () => {
     it('clicking an unchecked checkbox calls onChange with the framework id added', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -176,7 +176,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('clicking a checked checkbox calls onChange with the framework id removed', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -188,12 +188,11 @@ describe('FrameworkSelector', () => {
       const checkbox = fastapiLabel.querySelector('input[type="checkbox"]')
       fireEvent.click(checkbox)
       expect(mockOnChange).toHaveBeenCalledTimes(1)
-      // Should be called with the array excluding the toggled id
       expect(mockOnChange).toHaveBeenCalledWith([])
     })
 
     it('clicking a second framework adds it to the existing selection', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -212,7 +211,7 @@ describe('FrameworkSelector', () => {
 
   describe('selected summary', () => {
     it('shows a summary of selected frameworks when at least one is selected', () => {
-      render(
+      const { container } = renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -220,11 +219,13 @@ describe('FrameworkSelector', () => {
           selected={['rest-python-fastapi']}
         />
       )
-      expect(screen.getByText(/rest-python-fastapi/)).toBeInTheDocument()
+      const summary = container.querySelector('.selected-summary')
+      expect(summary).toBeInTheDocument()
+      expect(summary.textContent).toContain('rest-python-fastapi')
     })
 
     it('does not show selected summary when nothing is selected', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -238,7 +239,7 @@ describe('FrameworkSelector', () => {
 
   describe('error state', () => {
     it('shows error alert when error prop is provided', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           {...defaultProps}
           onChange={mockOnChange}
@@ -249,7 +250,7 @@ describe('FrameworkSelector', () => {
     })
 
     it('shows loading message when no error and no frameworks loaded', () => {
-      render(
+      renderWithLang(
         <FrameworkSelector
           frameworks={{ soap: [], rest: [] }}
           selected={[]}

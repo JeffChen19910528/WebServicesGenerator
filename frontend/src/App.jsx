@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { LanguageProvider, useLanguage } from './i18n/LanguageContext.jsx'
 import StepIndicator from './components/StepIndicator.jsx'
 import BasicInfo from './components/BasicInfo.jsx'
 import MethodBuilder from './components/MethodBuilder.jsx'
@@ -17,7 +18,8 @@ const initialService = {
   models: []
 }
 
-export default function App() {
+function AppContent() {
+  const { lang, setLang, t } = useLanguage()
   const [step, setStep] = useState(1)
   const [service, setService] = useState(initialService)
   const [frameworks, setFrameworks] = useState({ soap: [], rest: [] })
@@ -27,7 +29,7 @@ export default function App() {
   useEffect(() => {
     axios.get('/api/frameworks')
       .then(res => setFrameworks(res.data))
-      .catch(() => setFrameworksError('Failed to load frameworks from server.'))
+      .catch(() => setFrameworksError(t('failedToLoadFrameworks')))
   }, [])
 
   const totalSteps = 5
@@ -40,7 +42,7 @@ export default function App() {
     if (step > 1) setStep(s => s - 1)
   }
 
-  const stepLabels = ['Basic Info', 'Methods', 'Data Models', 'Frameworks', 'Download']
+  const stepLabels = t('stepLabels')
 
   const renderStep = () => {
     switch (step) {
@@ -76,8 +78,29 @@ export default function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>Web Services Generator</h1>
-        <p className="app-subtitle">Define your service and generate production-ready code</p>
+        <div className="app-header-content">
+          <div>
+            <h1>{t('appTitle')}</h1>
+            <p className="app-subtitle">{t('appSubtitle')}</p>
+          </div>
+          <div className="lang-switcher">
+            <button
+              className={`lang-btn${lang === 'en' ? ' active' : ''}`}
+              onClick={() => setLang('en')}
+              aria-label="Switch to English"
+            >
+              EN
+            </button>
+            <span className="lang-divider">|</span>
+            <button
+              className={`lang-btn${lang === 'zh-TW' ? ' active' : ''}`}
+              onClick={() => setLang('zh-TW')}
+              aria-label="切換為繁體中文"
+            >
+              繁中
+            </button>
+          </div>
+        </div>
       </header>
 
       <StepIndicator currentStep={step} totalSteps={totalSteps} labels={stepLabels} />
@@ -92,7 +115,7 @@ export default function App() {
           onClick={handlePrev}
           disabled={step === 1}
         >
-          &larr; Previous
+          {t('prev')}
         </button>
 
         {step < totalSteps && (
@@ -100,10 +123,18 @@ export default function App() {
             className="btn btn-primary"
             onClick={handleNext}
           >
-            Next &rarr;
+            {t('next')}
           </button>
         )}
       </div>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   )
 }
