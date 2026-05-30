@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import zipfile
 import io
+from typing import Optional, List, Dict
+from pydantic import BaseModel
 
 from models import GenerateRequest, GenerateTestsRequest
 from generators import get_generator
@@ -74,6 +76,85 @@ def generate_project(request: GenerateRequest):
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+class DBConnectRequest(BaseModel):
+    server: str
+    port: Optional[int] = None
+    database: str
+    username: Optional[str] = None
+    password: Optional[str] = None
+    auth_type: str = "sql"
+
+
+class DBSchemaRequest(DBConnectRequest):
+    tables: List[str]
+
+
+class DBGenerateServiceRequest(DBConnectRequest):
+    tables: List[str]
+    operations: Dict[str, List[str]]
+    service_name: str
+    service_type: str = "REST"
+    namespace: str = "http://example.com/service"
+
+
+def _get_db_conn(req: DBConnectRequest):
+    from db_connector import get_connection
+    try:
+        return get_connection(req.server, req.port, req.database,
+                              req.username, req.password, req.auth_type)
+    except ImportError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/database/connect")
+def database_connect(request: DBConnectRequest):
+    conn = _get_db_conn(request)
+    try:
+        from db_connector import get_tables
+        tables = get_tables(conn)
+        return {"tables": tables}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.post("/api/database/schema")
+def database_schema(request: DBSchemaRequest):
+    conn = _get_db_conn(request)
+    try:
+        from db_connector import get_columns
+        schema = {table: get_columns(conn, table) for table in request.tables}
+        return {"schema": schema}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.post("/api/database/generate-service")
+def database_generate_service(request: DBGenerateServiceRequest):
+    conn = _get_db_conn(request)
+    try:
+        from db_connector import get_columns
+        from db_to_service import build_service_from_schema
+        schema = {table: get_columns(conn, table) for table in request.tables}
+        service = build_service_from_schema(
+            schema=schema,
+            operations=request.operations,
+            service_name=request.service_name,
+            service_type=request.service_type,
+            namespace=request.namespace,
+        )
+        return service.model_dump()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
 
 
 @app.post("/api/generate-tests")
