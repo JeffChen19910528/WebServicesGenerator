@@ -19,8 +19,23 @@ const OP_METHOD = {
   getAll: 'GET', getById: 'GET', create: 'POST', update: 'PUT', delete: 'DELETE'
 }
 
+const DB_DEFAULT_PORTS = {
+  mssql: '1433',
+  mysql: '3306',
+  postgresql: '5432',
+  sqlite: '',
+}
+
+const DB_LABELS = {
+  mssql:      'MS SQL Server',
+  mysql:      'MySQL / MariaDB',
+  postgresql: 'PostgreSQL',
+  sqlite:     'SQLite',
+}
+
 const initialConn = {
-  server: '', port: '', database: '',
+  db_type: 'mssql',
+  server: '', port: '1433', database: '',
   username: '', password: '', auth_type: 'sql',
 }
 
@@ -53,21 +68,38 @@ export default function DatabaseWizard({ frameworks, onBack }) {
     ? ['連線設定', '選擇資料表', '操作設定', '選擇框架', '下載']
     : ['Connection', 'Select Tables', 'Operations', 'Frameworks', 'Download']
 
+  const isSQLite = conn.db_type === 'sqlite'
+  const isMSSQL  = conn.db_type === 'mssql'
+
+  function handleDbTypeChange(newType) {
+    setConn(c => ({
+      ...c,
+      db_type: newType,
+      port: DB_DEFAULT_PORTS[newType],
+      auth_type: 'sql',
+    }))
+  }
+
   // ── Step 1: Connect ──────────────────────────────────────────
   async function handleConnect() {
-    if (!conn.server || !conn.database) {
-      setConnError(lang === 'zh-TW' ? '請填寫伺服器位址與資料庫名稱' : 'Server and database are required')
+    if (!isSQLite && !conn.server) {
+      setConnError(lang === 'zh-TW' ? '請填寫伺服器位址' : 'Server address is required')
+      return
+    }
+    if (!conn.database) {
+      setConnError(lang === 'zh-TW' ? '請填寫資料庫名稱' : 'Database name is required')
       return
     }
     setConnecting(true)
     setConnError(null)
     try {
       const payload = {
+        db_type: conn.db_type,
         server: conn.server,
         port: conn.port ? parseInt(conn.port) : null,
         database: conn.database,
-        username: conn.auth_type === 'sql' ? conn.username : null,
-        password: conn.auth_type === 'sql' ? conn.password : null,
+        username: (!isSQLite && conn.auth_type === 'sql') ? conn.username : null,
+        password: (!isSQLite && conn.auth_type === 'sql') ? conn.password : null,
         auth_type: conn.auth_type,
       }
       const res = await axios.post('/api/database/connect', payload)
@@ -97,17 +129,16 @@ export default function DatabaseWizard({ frameworks, onBack }) {
   }
 
   async function handleLoadSchema() {
-    if (selectedTables.length === 0) {
-      return
-    }
+    if (selectedTables.length === 0) return
     setLoadingSchema(true)
     try {
       const payload = {
+        db_type: conn.db_type,
         server: conn.server,
         port: conn.port ? parseInt(conn.port) : null,
         database: conn.database,
-        username: conn.auth_type === 'sql' ? conn.username : null,
-        password: conn.auth_type === 'sql' ? conn.password : null,
+        username: (!isSQLite && conn.auth_type === 'sql') ? conn.username : null,
+        password: (!isSQLite && conn.auth_type === 'sql') ? conn.password : null,
         auth_type: conn.auth_type,
         tables: selectedTables,
       }
@@ -151,11 +182,12 @@ export default function DatabaseWizard({ frameworks, onBack }) {
     setGenError(null)
     try {
       const payload = {
+        db_type: conn.db_type,
         server: conn.server,
         port: conn.port ? parseInt(conn.port) : null,
         database: conn.database,
-        username: conn.auth_type === 'sql' ? conn.username : null,
-        password: conn.auth_type === 'sql' ? conn.password : null,
+        username: (!isSQLite && conn.auth_type === 'sql') ? conn.username : null,
+        password: (!isSQLite && conn.auth_type === 'sql') ? conn.password : null,
         auth_type: conn.auth_type,
         tables: selectedTables,
         operations,
@@ -173,6 +205,13 @@ export default function DatabaseWizard({ frameworks, onBack }) {
     }
   }
 
+  // ── Schema display helper ─────────────────────────────────────
+  function shouldShowSchema(tbl) {
+    if (conn.db_type === 'mssql') return tbl.schema !== 'dbo'
+    if (conn.db_type === 'postgresql') return tbl.schema !== 'public'
+    return false
+  }
+
   // ── Render helpers ────────────────────────────────────────────
   function renderStep1() {
     return (
@@ -185,84 +224,124 @@ export default function DatabaseWizard({ frameworks, onBack }) {
         </div>
 
         <div className="card">
-          <div className="form-row">
+          {/* DB Type selector */}
+          <div className="form-group">
+            <label className="form-label">{dt('dbType')}</label>
+            <div className="radio-group" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
+              {Object.entries(DB_LABELS).map(([val, label]) => (
+                <label key={val} className="radio-label">
+                  <input
+                    type="radio"
+                    name="db_type"
+                    value={val}
+                    checked={conn.db_type === val}
+                    onChange={() => handleDbTypeChange(val)}
+                  />
+                  <span className="radio-text">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* SQLite: only file path */}
+          {isSQLite ? (
             <div className="form-group">
               <label className="form-label">
-                {dt('server')} <span className="required">*</span>
+                {dt('filePath')} <span className="required">*</span>
               </label>
               <input
                 className="form-input"
-                placeholder={dt('serverPlaceholder')}
-                value={conn.server}
-                onChange={e => setConn(c => ({ ...c, server: e.target.value }))}
+                placeholder={dt('filePathPlaceholder')}
+                value={conn.database}
+                onChange={e => setConn(c => ({ ...c, database: e.target.value }))}
               />
             </div>
-            <div className="form-group">
-              <label className="form-label">{dt('port')}</label>
-              <input
-                className="form-input"
-                placeholder="1433"
-                value={conn.port}
-                onChange={e => setConn(c => ({ ...c, port: e.target.value }))}
-                type="number"
-              />
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">
+                    {dt('server')} <span className="required">*</span>
+                  </label>
+                  <input
+                    className="form-input"
+                    placeholder={dt('serverPlaceholder')}
+                    value={conn.server}
+                    onChange={e => setConn(c => ({ ...c, server: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{dt('port')}</label>
+                  <input
+                    className="form-input"
+                    placeholder={DB_DEFAULT_PORTS[conn.db_type]}
+                    value={conn.port}
+                    onChange={e => setConn(c => ({ ...c, port: e.target.value }))}
+                    type="number"
+                  />
+                </div>
+              </div>
 
-          <div className="form-group">
-            <label className="form-label">
-              {dt('database')} <span className="required">*</span>
-            </label>
-            <input
-              className="form-input"
-              placeholder={dt('databasePlaceholder')}
-              value={conn.database}
-              onChange={e => setConn(c => ({ ...c, database: e.target.value }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">{dt('authType')}</label>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input type="radio" name="auth_type" value="sql"
-                  checked={conn.auth_type === 'sql'}
-                  onChange={() => setConn(c => ({ ...c, auth_type: 'sql' }))} />
-                <span className="radio-text">{dt('authSQL')}</span>
-              </label>
-              <label className="radio-label">
-                <input type="radio" name="auth_type" value="windows"
-                  checked={conn.auth_type === 'windows'}
-                  onChange={() => setConn(c => ({ ...c, auth_type: 'windows' }))} />
-                <span className="radio-text">{dt('authWindows')}</span>
-              </label>
-            </div>
-          </div>
-
-          {conn.auth_type === 'sql' && (
-            <div className="form-row">
               <div className="form-group">
-                <label className="form-label">{dt('username')}</label>
+                <label className="form-label">
+                  {dt('database')} <span className="required">*</span>
+                </label>
                 <input
                   className="form-input"
-                  placeholder={dt('usernamePlaceholder')}
-                  value={conn.username}
-                  onChange={e => setConn(c => ({ ...c, username: e.target.value }))}
-                  autoComplete="username"
+                  placeholder={dt('databasePlaceholder')}
+                  value={conn.database}
+                  onChange={e => setConn(c => ({ ...c, database: e.target.value }))}
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">{dt('password')}</label>
-                <input
-                  className="form-input"
-                  type="password"
-                  placeholder="••••••••"
-                  value={conn.password}
-                  onChange={e => setConn(c => ({ ...c, password: e.target.value }))}
-                  autoComplete="current-password"
-                />
-              </div>
-            </div>
+
+              {/* Windows auth only for MS SQL */}
+              {isMSSQL && (
+                <div className="form-group">
+                  <label className="form-label">{dt('authType')}</label>
+                  <div className="radio-group">
+                    <label className="radio-label">
+                      <input type="radio" name="auth_type" value="sql"
+                        checked={conn.auth_type === 'sql'}
+                        onChange={() => setConn(c => ({ ...c, auth_type: 'sql' }))} />
+                      <span className="radio-text">{dt('authSQL')}</span>
+                    </label>
+                    <label className="radio-label">
+                      <input type="radio" name="auth_type" value="windows"
+                        checked={conn.auth_type === 'windows'}
+                        onChange={() => setConn(c => ({ ...c, auth_type: 'windows' }))} />
+                      <span className="radio-text">{dt('authWindows')}</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Username / password */}
+              {(!isMSSQL || conn.auth_type === 'sql') && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">{dt('username')}</label>
+                    <input
+                      className="form-input"
+                      placeholder={dt('usernamePlaceholder')}
+                      value={conn.username}
+                      onChange={e => setConn(c => ({ ...c, username: e.target.value }))}
+                      autoComplete="username"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">{dt('password')}</label>
+                    <input
+                      className="form-input"
+                      type="password"
+                      placeholder="••••••••"
+                      value={conn.password}
+                      onChange={e => setConn(c => ({ ...c, password: e.target.value }))}
+                      autoComplete="current-password"
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {connError && <div className="alert alert-error">{connError}</div>}
@@ -284,7 +363,9 @@ export default function DatabaseWizard({ frameworks, onBack }) {
           <div>
             <div className="section-title">{dt('selectTablesTitle')}</div>
             <div className="section-description">
-              {dt('selectTablesDesc')} &mdash; {lang === 'zh-TW' ? `已連線至 ${conn.database}` : `Connected to ${conn.database}`}
+              {dt('selectTablesDesc')} &mdash; {lang === 'zh-TW'
+                ? `已連線至 ${conn.database}`
+                : `Connected to ${conn.database}`}
             </div>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={toggleAllTables}>
@@ -307,7 +388,7 @@ export default function DatabaseWizard({ frameworks, onBack }) {
                   />
                   <div className="db-table-card-content">
                     <span className="db-table-name">{tbl.table_name}</span>
-                    {tbl.schema !== 'dbo' && (
+                    {shouldShowSchema(tbl) && (
                       <span className="db-table-schema">{tbl.schema}</span>
                     )}
                   </div>
@@ -497,6 +578,8 @@ export default function DatabaseWizard({ frameworks, onBack }) {
     }
   }
 
+  const dbLabel = DB_LABELS[conn.db_type] || conn.db_type
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -504,7 +587,9 @@ export default function DatabaseWizard({ frameworks, onBack }) {
           ← {lang === 'zh-TW' ? '返回首頁' : 'Back to Home'}
         </button>
         <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-          {lang === 'zh-TW' ? 'MS SQL Server 資料庫匯入' : 'Import from MS SQL Server'}
+          {lang === 'zh-TW'
+            ? `${dbLabel} 資料庫匯入`
+            : `Import from ${dbLabel}`}
         </span>
       </div>
 

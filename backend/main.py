@@ -79,7 +79,8 @@ def generate_project(request: GenerateRequest):
 
 
 class DBConnectRequest(BaseModel):
-    server: str
+    db_type: str = "mssql"
+    server: str = ""
     port: Optional[int] = None
     database: str
     username: Optional[str] = None
@@ -102,7 +103,7 @@ class DBGenerateServiceRequest(DBConnectRequest):
 def _get_db_conn(req: DBConnectRequest):
     from db_connector import get_connection
     try:
-        return get_connection(req.server, req.port, req.database,
+        return get_connection(req.db_type, req.server, req.port, req.database,
                               req.username, req.password, req.auth_type)
     except ImportError as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -115,7 +116,7 @@ def database_connect(request: DBConnectRequest):
     conn = _get_db_conn(request)
     try:
         from db_connector import get_tables
-        tables = get_tables(conn)
+        tables = get_tables(conn, request.db_type)
         return {"tables": tables}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -128,7 +129,7 @@ def database_schema(request: DBSchemaRequest):
     conn = _get_db_conn(request)
     try:
         from db_connector import get_columns
-        schema = {table: get_columns(conn, table) for table in request.tables}
+        schema = {table: get_columns(conn, table, request.db_type) for table in request.tables}
         return {"schema": schema}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -142,7 +143,7 @@ def database_generate_service(request: DBGenerateServiceRequest):
     try:
         from db_connector import get_columns
         from db_to_service import build_service_from_schema
-        schema = {table: get_columns(conn, table) for table in request.tables}
+        schema = {table: get_columns(conn, table, request.db_type) for table in request.tables}
         service = build_service_from_schema(
             schema=schema,
             operations=request.operations,

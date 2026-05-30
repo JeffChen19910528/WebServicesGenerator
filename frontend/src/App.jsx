@@ -110,8 +110,8 @@ function AppContent() {
           </h2>
           <p className="mode-selector-desc">
             {lang === 'zh-TW'
-              ? '您可以手動定義服務，或直接從 MS SQL Server 資料庫自動產生。'
-              : 'Manually define your service, or auto-generate from an MS SQL Server database.'}
+              ? '您可以手動定義服務，或直接從資料庫（MS SQL、MySQL、PostgreSQL、SQLite）自動產生。'
+              : 'Manually define your service, or auto-generate from a database (MS SQL, MySQL, PostgreSQL, SQLite).'}
           </p>
           <div className="mode-cards">
             <button className="mode-card" onClick={() => setMode('manual')}>
@@ -137,10 +137,10 @@ function AppContent() {
                 </div>
                 <div className="mode-card-desc">
                   {lang === 'zh-TW'
-                    ? '連線到 MS SQL Server，選擇資料表，自動產生 CRUD Web Service。'
-                    : 'Connect to MS SQL Server, pick tables, and auto-generate CRUD web services.'}
+                    ? '連線到資料庫，選擇資料表，自動產生 CRUD Web Service。'
+                    : 'Connect to a database, pick tables, and auto-generate CRUD web services.'}
                 </div>
-                <div className="mode-card-badge">MS SQL Server</div>
+                <div className="mode-card-badge">MS SQL · MySQL · PostgreSQL · SQLite</div>
               </div>
               <span className="mode-card-arrow">→</span>
             </button>

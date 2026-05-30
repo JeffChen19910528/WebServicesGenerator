@@ -124,7 +124,7 @@ def build_service_from_schema(
         service_name=service_name,
         service_type=ServiceType(service_type),
         namespace=namespace,
-        description="由 MS SQL Server 資料庫自動產生的服務",
+        description="由資料庫自動產生的服務",
         version="1.0",
         methods=methods,
         models=models,

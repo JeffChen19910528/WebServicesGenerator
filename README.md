@@ -8,7 +8,7 @@
 
 一個能自動建立 Web Services 專案的製造器工具。只需在介面填寫欄位，即可產生多種語言/框架的完整專案代碼並下載，同時支援輸出 SOAP XML、SoapUI Project、Postman Collection 等測試格式。
 
-現支援從 **MS SQL Server 資料庫** 直接匯入結構，自動產生 CRUD 服務定義，無需手動填寫方法與資料模型。
+現支援從 **MS SQL Server、MySQL / MariaDB、PostgreSQL、SQLite** 資料庫直接匯入結構，自動產生 CRUD 服務定義，無需手動填寫方法與資料模型。
 
 介面支援 **English / 繁體中文** 語系切換，點擊右上角的 EN | 繁中 按鈕即可切換。
 
@@ -21,7 +21,7 @@
 - **3 種測試格式**：SOAP XML Envelope、SoapUI Project、Postman Collection
 - **ZIP 下載**：所有產生的檔案打包成 ZIP 直接下載
 - **5 步驟精靈介面**：引導式表單，逐步填寫服務定義
-- **MS SQL Server 匯入**：連線資料庫、選擇資料表、設定 CRUD 操作，自動產生完整服務定義
+- **多資料庫匯入**：支援 MS SQL Server、MySQL / MariaDB、PostgreSQL、SQLite；連線資料庫、選擇資料表、設定 CRUD 操作，自動產生完整服務定義
 - **多語系 UI**：English / 繁體中文 即時切換
 
 ---
@@ -66,7 +66,11 @@
 - Python 3.10+
 - Node.js 18+
 - npm
-- （選用）MS SQL Server ODBC 驅動程式（使用資料庫匯入功能時需要）
+- （選用）視使用的資料庫而定：
+  - **MS SQL Server**：需安裝 [ODBC Driver for SQL Server](https://learn.microsoft.com/zh-tw/sql/connect/odbc/download-odbc-driver-for-sql-server)（17 或 18 版）及 `pip install pyodbc`
+  - **MySQL / MariaDB**：`pip install pymysql`
+  - **PostgreSQL**：`pip install psycopg2-binary`
+  - **SQLite**：內建於 Python，無需額外安裝
 
 #### 一鍵啟動（Windows）
 
@@ -133,19 +137,24 @@ npm run dev
 
 ---
 
-### MS SQL Server 資料庫匯入
+### 資料庫匯入
 
-點擊首頁的「**從資料庫匯入**」按鈕進入 5 步驟精靈：
+點擊首頁的「**從資料庫匯入**」按鈕進入 5 步驟精靈，支援以下資料庫引擎：
+
+| 引擎 | 預設連接埠 | 驅動套件 |
+|------|-----------|---------|
+| MS SQL Server | 1433 | `pyodbc` + ODBC Driver 17/18 |
+| MySQL / MariaDB | 3306 | `pymysql` |
+| PostgreSQL | 5432 | `psycopg2-binary` |
+| SQLite | — | 內建（無需安裝） |
 
 | 步驟 | 說明 |
 |------|------|
-| Step 1 — 連線設定 | 填寫伺服器位址、資料庫名稱、驗證方式（SQL / Windows 整合驗證） |
+| Step 1 — 連線設定 | 選擇資料庫引擎，填寫連線資訊（SQLite 僅需檔案路徑；MS SQL 另支援 Windows 整合驗證） |
 | Step 2 — 選擇資料表 | 瀏覽資料庫中所有資料表，勾選要匯入的項目 |
 | Step 3 — 操作設定 | 為每個資料表選擇要產生的操作（getAll、getById、create、update、delete），並設定服務名稱與類型 |
 | Step 4 — 選擇框架 | 選擇輸出的語言/框架 |
 | Step 5 — 下載 | 下載自動產生的專案 ZIP |
-
-> 需要安裝 [ODBC Driver for SQL Server](https://learn.microsoft.com/zh-tw/sql/connect/odbc/download-odbc-driver-for-sql-server)（17 或 18 版）。
 
 ---
 
@@ -159,7 +168,7 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-共 **449 個測試**，全部通過。
+共 **507 個測試**，全部通過。
 
 #### 前端測試（Vitest）
 
@@ -182,7 +191,8 @@ npm test
 共 **161 個測試**，全部通過。
 
 後端新增資料庫功能測試：
-- **test_db_api.py** — `/api/database/*` 端點整合測試（mock pyodbc，18 個測試）
+- **test_db_api.py** — `/api/database/*` 端點整合測試，涵蓋 MS SQL、MySQL、PostgreSQL、SQLite（49 個測試）
+- **test_db_connector.py** — 各資料庫連線/查詢函式單元測試（27 個測試）
 - **test_db_to_service.py** — Schema 轉換邏輯單元測試（24 個測試）
 
 ---
@@ -191,7 +201,7 @@ npm test
 
 A web service project generator. Fill in the form fields and generate complete project code for multiple languages/frameworks, with support for SOAP XML, SoapUI Project, and Postman Collection test artifacts.
 
-You can also **import directly from an MS SQL Server database** — connect, pick tables, choose CRUD operations, and the service definition is built automatically.
+You can also **import directly from a database** (MS SQL Server, MySQL / MariaDB, PostgreSQL, SQLite) — connect, pick tables, choose CRUD operations, and the service definition is built automatically.
 
 The UI supports **English / 繁體中文** language switching — click the EN | 繁中 button in the top-right corner of the header.
 
@@ -204,7 +214,7 @@ The UI supports **English / 繁體中文** language switching — click the EN |
 - **3 test formats**: SOAP XML Envelope, SoapUI Project, Postman Collection
 - **ZIP download**: All generated files bundled as a ZIP
 - **5-step wizard UI**: Guided form for step-by-step service definition
-- **MS SQL Server import**: Connect to a database, select tables, configure CRUD operations, and auto-generate a complete service definition
+- **Multi-database import**: MS SQL Server, MySQL / MariaDB, PostgreSQL, SQLite — connect, pick tables, configure CRUD operations, and auto-generate a complete service definition
 - **Multi-language UI**: Switch between English and Traditional Chinese instantly
 
 ---
@@ -249,7 +259,11 @@ The UI supports **English / 繁體中文** language switching — click the EN |
 - Python 3.10+
 - Node.js 18+
 - npm
-- (Optional) MS SQL Server ODBC Driver 17 or 18 — required only for the database import feature
+- (Optional) Database driver depending on the engine you use:
+  - **MS SQL Server**: [ODBC Driver for SQL Server](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server) (v17 or v18) + `pip install pyodbc`
+  - **MySQL / MariaDB**: `pip install pymysql`
+  - **PostgreSQL**: `pip install psycopg2-binary`
+  - **SQLite**: built into Python — no extra install needed
 
 #### One-Click Start (Windows)
 
@@ -316,19 +330,24 @@ Check the frameworks you want code generated for. The list is filtered automatic
 
 ---
 
-### MS SQL Server Database Import
+### Database Import
 
-Click **"Import from Database"** on the home screen to open the 5-step import wizard:
+Click **"Import from Database"** on the home screen to open the 5-step import wizard. Supported engines:
+
+| Engine | Default Port | Driver |
+|--------|-------------|--------|
+| MS SQL Server | 1433 | `pyodbc` + ODBC Driver 17/18 |
+| MySQL / MariaDB | 3306 | `pymysql` |
+| PostgreSQL | 5432 | `psycopg2-binary` |
+| SQLite | — | built-in (no install needed) |
 
 | Step | Description |
 |------|-------------|
-| Step 1 — Connection | Enter server address, database name, and authentication (SQL / Windows Integrated) |
+| Step 1 — Connection | Select the database engine and enter connection details (SQLite only needs a file path; MS SQL also supports Windows Integrated Auth) |
 | Step 2 — Select Tables | Browse all tables in the database and check the ones to import |
 | Step 3 — Operations | Choose CRUD operations for each table (getAll, getById, create, update, delete), set service name and type |
 | Step 4 — Frameworks | Select output language/framework |
 | Step 5 — Download | Download the auto-generated project ZIP |
-
-> Requires [ODBC Driver for SQL Server](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server) (version 17 or 18).
 
 ---
 
@@ -389,7 +408,7 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-**449 tests**, all passing.
+**507 tests**, all passing.
 
 #### Frontend tests (Vitest)
 
@@ -416,7 +435,8 @@ New backend database tests:
 
 | Test file | Coverage | Count |
 |-----------|----------|-------|
-| test_db_api.py | `/api/database/*` endpoint integration tests (mocked pyodbc) | 18 |
+| test_db_api.py | `/api/database/*` endpoint integration tests — MS SQL, MySQL, PostgreSQL, SQLite | 49 |
+| test_db_connector.py | Connection dispatch, table/column query unit tests per DB type | 27 |
 | test_db_to_service.py | Schema-to-service conversion unit tests | 24 |
 
 ---
@@ -428,7 +448,7 @@ webservices/
 ├── backend/
 │   ├── main.py                      # FastAPI main app
 │   ├── models.py                    # Pydantic data models
-│   ├── db_connector.py              # MS SQL Server connection & schema extraction
+│   ├── db_connector.py              # Multi-database connection & schema extraction (MS SQL, MySQL, PostgreSQL, SQLite)
 │   ├── db_to_service.py             # Convert DB schema to ServiceDefinition
 │   ├── requirements.txt
 │   ├── pytest.ini
@@ -448,7 +468,8 @@ webservices/
 │       ├── test_generators_soap.py
 │       ├── test_generators_rest.py
 │       ├── test_test_generators.py
-│       ├── test_db_api.py           # /api/database/* endpoint tests
+│       ├── test_db_api.py           # /api/database/* endpoint tests (all 4 DB types)
+│       ├── test_db_connector.py     # Connection dispatch & column parsing unit tests
 │       └── test_db_to_service.py    # Schema conversion unit tests
 └── frontend/
     ├── package.json
@@ -469,7 +490,7 @@ webservices/
         │   ├── FrameworkSelector.jsx
         │   ├── DownloadPanel.jsx
         │   ├── StepIndicator.jsx
-        │   └── DatabaseWizard.jsx   # MS SQL Server import wizard
+        │   └── DatabaseWizard.jsx   # Multi-database import wizard (MS SQL, MySQL, PostgreSQL, SQLite)
         └── tests/
             ├── testUtils.jsx        # renderWithLang helper
             ├── i18n.test.jsx
@@ -486,11 +507,12 @@ webservices/
 
 #### `POST /api/database/connect`
 
-Connects to MS SQL Server and returns the list of tables.
+Connects to the database and returns the list of tables. Supported `db_type` values: `mssql`, `mysql`, `postgresql`, `sqlite`.
 
 **Request body:**
 ```json
 {
+  "db_type": "mssql",
   "server": "localhost",
   "port": 1433,
   "database": "MyDB",
@@ -499,6 +521,8 @@ Connects to MS SQL Server and returns the list of tables.
   "auth_type": "sql"
 }
 ```
+
+For **SQLite**, only `db_type` and `database` (file path) are required. For **MySQL/PostgreSQL**, `auth_type` is ignored.
 
 **Response:**
 ```json
